@@ -2,8 +2,8 @@ use crate::util::{add_hex_prefix, strip_hex_prefix};
 use anyhow::Result;
 use ethers::types::{Bytes, U256};
 use serde::Deserialize;
-use std::{fs, fmt::Display};
 use std::str::FromStr;
+use std::{fmt::Display, fs};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
@@ -59,7 +59,11 @@ pub struct AddressGenerationConfig {
 
 impl Display for AddressGenerationConfig {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let prefix = self.prefix.as_ref().map(|p| format!("\n\t- Prefix: {}", p)).unwrap_or_default();
+        let prefix = self
+            .prefix
+            .as_ref()
+            .map(|p| format!("\n\t- Prefix: {}", p))
+            .unwrap_or_default();
         let num_zero_bytes = if self.num_zero_bytes == 0 {
             "".to_string()
         } else {
@@ -69,9 +73,7 @@ impl Display for AddressGenerationConfig {
         write!(
             f,
             "\nAddress Generation Config{}{}{}",
-            prefix,
-            num_zero_bytes,
-            s_start
+            prefix, num_zero_bytes, s_start
         )
     }
 }
@@ -109,7 +111,9 @@ impl Opts {
         let this = Opts::from_args();
 
         Ok(Config {
-            tx_config: TransactionConfig { bytecode: parse_bytecode(&this)? },
+            tx_config: TransactionConfig {
+                bytecode: parse_bytecode(&this)?,
+            },
             gen_config: AddressGenerationConfig {
                 prefix: this.prefix.map(|s| add_hex_prefix(&s)),
                 num_zero_bytes: this.num_zero_bytes.unwrap_or_default(),
@@ -123,7 +127,10 @@ impl Opts {
 }
 
 fn parse_bytecode(opts: &Opts) -> Result<Bytes> {
-    let tail: String = opts.constructor_args.as_ref().map_or("".to_string(), |a| strip_hex_prefix(a));
+    let tail: String = opts
+        .constructor_args
+        .as_ref()
+        .map_or("".to_string(), |a| strip_hex_prefix(a));
     let mut bytecode: String = match (opts.artifact.clone(), opts.bytecode.clone()) {
         (Some(artifact), None) => {
             let artifact: Artifact =

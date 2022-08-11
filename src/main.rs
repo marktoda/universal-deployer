@@ -1,6 +1,6 @@
-use crossbeam_channel::{Receiver, bounded};
-use ethers::types::Bytes;
 use anyhow::Result;
+use crossbeam_channel::{bounded, Receiver};
+use ethers::types::Bytes;
 use std::fmt::Display;
 mod opt;
 use opt::Opts;
@@ -16,7 +16,7 @@ fn main() {
             println!("{}", result);
         }
         Err(err) => {
-            println!("ERROR! {:?}", err);
+            eprintln!("{:?}", err);
         }
     }
 }

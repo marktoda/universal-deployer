@@ -1,12 +1,12 @@
-use crossbeam_channel::Receiver;
-use std::fmt::Display;
 use crate::opt::AddressGenerationConfig;
 use crate::tx::Recoverable;
 use anyhow::Result;
+use crossbeam_channel::Receiver;
 use ethers::{
     types::{transaction::eip2718::TypedTransaction, Address, Signature, U256},
     utils::get_contract_address,
 };
+use std::fmt::Display;
 
 const SIG_V: u64 = 27;
 const SIG_R: &str = "0x79ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
@@ -20,7 +20,11 @@ pub struct SignatureResult {
 
 impl Display for SignatureResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Sig: {}\nContract: 0x{:x}\nDeployer: 0x{:x}", self.sig, self.contract, self.deployer)
+        write!(
+            f,
+            "Sig: {}\nContract: 0x{:x}\nDeployer: 0x{:x}",
+            self.sig, self.contract, self.deployer
+        )
     }
 }
 
@@ -37,7 +41,10 @@ pub fn find_signature(
     let mut best_s: U256 = s;
     let mut best_zero_byte_count: usize = 0;
 
-    println!("Starting search for deployment signature with config: {}", config);
+    println!(
+        "Starting search for deployment signature with config: {}",
+        config
+    );
     loop {
         let result = generate_signature(&tx, s)?;
         let zero_count = count_zero_bytes(result.contract);
@@ -49,7 +56,7 @@ pub fn find_signature(
                 println!(
                     "Found new best signature with contract: {}, zero byte count: {}",
                     result.contract, zero_count
-                    );
+                );
                 best_s = s;
                 best_zero_byte_count = zero_count;
             }
@@ -60,7 +67,7 @@ pub fn find_signature(
             return Ok(generate_signature(&tx, best_s)?);
         }
 
-        if s.saturating_sub(config.s_start).as_u64() % 10000 == 0  && s != config.s_start {
+        if s.saturating_sub(config.s_start).as_u64() % 10000 == 0 && s != config.s_start {
             println!("Still chugging! Current s: {}", s);
         }
 

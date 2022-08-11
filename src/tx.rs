@@ -1,9 +1,9 @@
+use crate::opt::TransactionConfig;
 use anyhow::Result;
 use ethers::types::{
     transaction::{eip2718::TypedTransaction, request::TransactionRequest},
     Address, Signature, U256,
 };
-use crate::opt::TransactionConfig;
 
 const GAS_LIMIT: &str = "1000000";
 const GAS_PRICE: &str = "100000000000";
