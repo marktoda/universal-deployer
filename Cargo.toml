@@ -1,0 +1,15 @@
+[package]
+name = "universal-deployer"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.61"
+crossbeam-channel = "0.5.6"
+ctrlc = "3.2.2"
+ethers = "0.17.0"
+serde = "1.0.143"
+serde_json = "1.0.83"
+structopt = "0.3.26"
