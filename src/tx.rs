@@ -5,16 +5,13 @@ use ethers::types::{
     Address, Signature, U256,
 };
 
-const GAS_LIMIT: &str = "1000000";
-const GAS_PRICE: &str = "100000000000";
-
 // creates a typedtransaction for a general contract deployment with the given bytecode
 pub fn create_transaction(config: &TransactionConfig) -> Result<TypedTransaction> {
     let request = TransactionRequest {
         from: None,
         to: None,
-        gas: Some(U256::from_dec_str(GAS_LIMIT)?),
-        gas_price: Some(U256::from_dec_str(GAS_PRICE)?),
+        gas: Some(U256::from_dec_str(&config.gas_limit)?),
+        gas_price: Some(U256::from_dec_str(&config.gas_price)?),
         value: None,
         data: Some(config.bytecode.clone()),
         nonce: Some(U256::from_dec_str("0")?),

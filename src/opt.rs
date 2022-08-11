@@ -48,6 +48,18 @@ pub struct Opts {
         help = "The S value to start with, useful when running multiple instances to grind"
     )]
     s_start: Option<String>,
+    #[structopt(
+        long = "gas-price",
+        help = "The gas price to use for the transaction. Recommended to use a generally high price to allow confirmation on many chains",
+        default_value = "100000000000"
+    )]
+    gas_price: String,
+    #[structopt(
+        long = "gas-limit",
+        help = "The gas limit to use for the transaction. Recommended to use a generally overestimated limit to allow confirmation on many chains",
+        default_value = "1000000"
+    )]
+    gas_limit: String,
 }
 
 #[derive(Debug)]
@@ -81,6 +93,8 @@ impl Display for AddressGenerationConfig {
 #[derive(Debug)]
 pub struct TransactionConfig {
     pub bytecode: Bytes,
+    pub gas_price: String,
+    pub gas_limit: String,
 }
 
 #[derive(Debug)]
@@ -113,6 +127,8 @@ impl Opts {
         Ok(Config {
             tx_config: TransactionConfig {
                 bytecode: parse_bytecode(&this)?,
+                gas_price: this.gas_price,
+                gas_limit: this.gas_limit,
             },
             gen_config: AddressGenerationConfig {
                 prefix: this.prefix.map(|s| add_hex_prefix(&s)),
