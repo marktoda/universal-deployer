@@ -46,7 +46,7 @@ pub fn find_signature(
         config
     );
     loop {
-        let result = generate_signature(&tx, s)?;
+        let result = generate_signature(tx, s)?;
         let zero_count = count_zero_bytes(result.contract);
 
         if has_prefix(result.contract, &config.prefix) {
@@ -64,7 +64,7 @@ pub fn find_signature(
 
         if signal.try_recv().is_ok() {
             println!("Received sigint, shutting down cleanly...");
-            return Ok(generate_signature(&tx, best_s)?);
+            return generate_signature(tx, best_s);
         }
 
         if s.saturating_sub(config.s_start).as_u64() % 10000 == 0 && s != config.s_start {

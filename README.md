@@ -43,10 +43,10 @@ OPTIONS:
     -a, --artifact <artifact>                    Path to a compiled contract artifact
     -b, --bytecode <bytecode>                    The bytecode of the contract to deploy
     -c, --constructor-args <constructor-args>    ABI encoded constructor args to pass to the deployment
-    -g, --gas-limit <gas-limit>
+        --gas-limit <gas-limit>
             The gas limit to use for the transaction. Recommended to use a generally overestimated limit to allow
             confirmation on many chains [default: 1000000]
-    -g, --gas-price <gas-price>
+        --gas-price <gas-price>
             The gas price to use for the transaction. Recommended to use a generally high price to allow confirmation on
             many chains [default: 100000000000]
     -n, --num-zero-bytes <num-zero-bytes>        The number of zero bytes to exist in the deployed contract address
