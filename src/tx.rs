@@ -19,7 +19,12 @@ async fn get_gas(config: &TransactionConfig) -> Result<U256> {
     let gas = if config.rpc_url.is_some() {
         let provider = Provider::<Http>::try_from(config.rpc_url.as_ref().unwrap())?;
         let tx = build_transaction_request(config, None)?;
-        provider.estimate_gas(&TypedTransaction::Legacy(tx)).await?
+        let estimate = provider.estimate_gas(&TypedTransaction::Legacy(tx)).await?;
+        // 20% buffer for chain-specific gas costs or other weirdness
+        estimate
+            .saturating_mul(U256::from(6))
+            .checked_div(U256::from(5))
+            .ok_or(anyhow::anyhow!("Gas estimate too high"))?
     } else {
         // default to 1 million :shrug:
         U256::from_dec_str("1000000")?
