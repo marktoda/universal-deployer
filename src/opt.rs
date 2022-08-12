@@ -56,15 +56,16 @@ pub struct Opts {
     gas_price: String,
     #[structopt(
         long = "gas-limit",
-        help = "The gas limit to use for the transaction. Recommended to use a generally overestimated limit to allow confirmation on many chains",
-        default_value = "1000000"
+        help = "The gas limit to use for the transaction. Recommended to use a generally overestimated limit to allow confirmation on many chains"
     )]
-    gas_limit: String,
+    gas_limit: Option<String>,
     #[structopt(
-        short = "j",
-        long = "json",
-        help = "Print output in json format",
+        short = "r",
+        long = "rpc-url",
+        help = "Optional RPC url to estimate deployment gas limit"
     )]
+    rpc_url: Option<String>,
+    #[structopt(short = "j", long = "json", help = "Print output in json format")]
     json: bool,
 }
 
@@ -100,7 +101,8 @@ impl Display for AddressGenerationConfig {
 pub struct TransactionConfig {
     pub bytecode: Bytes,
     pub gas_price: String,
-    pub gas_limit: String,
+    pub gas_limit: Option<String>,
+    pub rpc_url: Option<String>,
 }
 
 #[derive(Debug)]
@@ -137,6 +139,7 @@ impl Opts {
                 bytecode: parse_bytecode(&this)?,
                 gas_price: this.gas_price,
                 gas_limit: this.gas_limit,
+                rpc_url: this.rpc_url,
             },
             gen_config: AddressGenerationConfig {
                 prefix: this.prefix.map(|s| strip_hex_prefix(&s)),

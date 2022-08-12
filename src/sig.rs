@@ -1,14 +1,14 @@
+use crate::address::{check_address, AddressMatch};
+use crate::opt::AddressGenerationConfig;
+use crate::tx::Recoverable;
 use anyhow::Result;
 use crossbeam_channel::Receiver;
-use serde::Serialize;
 use ethers::{
     types::{transaction::request::TransactionRequest, Address, Signature, U256},
     utils::get_contract_address,
 };
+use serde::Serialize;
 use std::fmt::Display;
-use crate::opt::AddressGenerationConfig;
-use crate::tx::Recoverable;
-use crate::address::{AddressMatch, check_address};
 
 const SIG_V: u64 = 27;
 const SIG_R: &str = "0x79ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
@@ -60,7 +60,7 @@ pub fn find_signature(
                     println!(
                         "Found new best signature with contract: {}, match_count: {}",
                         result.contract, count
-                        );
+                    );
                     best_s = s;
                     best_match_count = count;
                 }
@@ -68,7 +68,10 @@ pub fn find_signature(
         }
 
         if signal.try_recv().is_ok() {
-            println!("Received sigint - current s: {} - shutting down cleanly...", s);
+            println!(
+                "Received sigint - current s: {} - shutting down cleanly...",
+                s
+            );
             return generate_signature(tx, best_s);
         }
 

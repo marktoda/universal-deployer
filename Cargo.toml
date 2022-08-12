@@ -13,3 +13,4 @@ ethers = "0.17.0"
 serde = "1.0.143"
 serde_json = "1.0.83"
 structopt = "0.3.26"
+tokio = { version = "1.20.1", features = ["rt-multi-thread", "macros" ] }

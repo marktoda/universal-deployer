@@ -1,44 +1,55 @@
 use anyhow::Result;
 use crossbeam_channel::{bounded, Receiver};
-use ethers::types::Bytes;
-use std::fmt::Display;
+use ethers::types::{transaction::request::TransactionRequest, Bytes, U256};
 use serde::Serialize;
+use std::fmt::Display;
 mod opt;
 use opt::{Config, Opts};
 mod tx;
-use tx::create_transaction;
+use tx::{create_transaction, Recoverable};
 mod sig;
 use sig::{find_signature, SignatureResult};
-mod util;
 mod address;
+mod util;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let config = Opts::parse().unwrap();
-    let result = find(&config);
+    let result = find(&config).await;
     output(&config, result).unwrap();
 }
 
 #[derive(Debug, Serialize)]
 pub struct FindResult {
     info: SignatureResult,
-    tx: Bytes,
+    tx: TransactionRequest,
+    tx_raw: Bytes,
+    tx_cost: U256,
 }
 
 impl Display for FindResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Info: {}\nRaw Tx: {}", self.info, self.tx)
+        write!(
+            f,
+            "Info: {}\n\n==== Raw Tx ====\n{}\n\nSend exactly {} native tokens to the deployer address",
+            self.info,
+            self.tx_raw,
+            self.tx_cost
+        )
     }
 }
 
 // create a transaction to deploy the given contract
-fn find(opts: &Config) -> Result<FindResult> {
-    let tx = create_transaction(&opts.tx_config)?;
+async fn find(opts: &Config) -> Result<FindResult> {
+    let tx = create_transaction(&opts.tx_config).await?;
 
     let receiver = signal_channel()?;
     let info = find_signature(&tx, &opts.gen_config, receiver)?;
     Ok(FindResult {
         info: info.clone(),
-        tx: tx.rlp_signed(&info.sig),
+        tx: tx.clone(),
+        tx_raw: tx.rlp_signed(&info.sig),
+        tx_cost: tx.get_cost(),
     })
 }
 

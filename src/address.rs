@@ -1,5 +1,5 @@
-use ethers::types::Address;
 use crate::opt::AddressGenerationConfig;
+use ethers::types::Address;
 
 pub enum AddressMatch {
     Match,
