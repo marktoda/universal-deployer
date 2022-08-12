@@ -8,6 +8,15 @@ A tool to generate single-use keyless transactions to deploy smart contracts acr
 
 Once finished with this process, you just send some ETH to this single-use address on any chain and send the raw transaction.
 
+## Benefits over traditional deployment methods
+- Easily deploy a contract to the same address across chains
+    - No need to manage deployer key nonces, and no risk of accidentally using up the nonce
+- Simple trust model
+    - If you trust the contract address on one chain, you can trust it on all chains
+    - If the address is the same, the code & args must be the same as well
+- Decentralized deployments
+    - Contract deployments can be publicly shared and deployed to any chain by anybody
+
 ## Features
 - Efficient vanity address generation
     - Specify a prefix
@@ -95,3 +104,7 @@ Raw Tx: 0x....
 - `cast publish`
 - send an `eth_sendRawTransaction` RPC call to a full-node or RPC service
 8. Save the transaction! It can be used in the future to deploy to other chains.
+
+
+## Limitations
+- If a contract includes args which may be different chain-to-chain (i.e. WETH), this tool is not very useful as the args can't be changed without changing the contract address. 

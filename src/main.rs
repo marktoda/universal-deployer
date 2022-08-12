@@ -35,7 +35,7 @@ impl Display for FindResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "Info: {}\n\n==== Raw Tx ====\n{}\n\nSend exactly {} native tokens to the deployer address",
+            "\n==== Info ====\n{}\n\n==== Raw Tx ====\n{}\n\nSend exactly {} native tokens to the deployer address",
             self.info,
             self.tx_raw,
             self.tx_cost
