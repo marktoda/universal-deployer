@@ -13,17 +13,9 @@ use structopt::StructOpt;
 )]
 pub struct Opts {
     #[structopt(
-        short = "a",
-        long = "artifact",
-        help = "Path to a compiled contract artifact"
+        help = "Path to a contract artifact file or hex contract bytecode"
     )]
-    artifact: Option<String>,
-    #[structopt(
-        short = "b",
-        long = "bytecode",
-        help = "The bytecode of the contract to deploy"
-    )]
-    bytecode: Option<String>,
+    bytecode_or_artifact: String,
     #[structopt(
         short = "c",
         long = "constructor-args",
@@ -158,17 +150,20 @@ fn parse_bytecode(opts: &Opts) -> Result<Bytes> {
         .constructor_args
         .as_ref()
         .map_or("".to_string(), |a| strip_hex_prefix(a));
-    let mut bytecode: String = match (opts.artifact.clone(), opts.bytecode.clone()) {
-        (Some(artifact), None) => {
+
+    let valid_hex = hex::decode(strip_hex_prefix(&opts.bytecode_or_artifact));
+    let mut bytecode: String = match valid_hex {
+        Ok(_) => {
+            opts.bytecode_or_artifact.to_string()
+        }
+        Err(_) => {
             let artifact: Artifact =
-                serde_json::from_str(&fs::read_to_string(artifact).unwrap()).unwrap();
+                serde_json::from_str(&fs::read_to_string(&opts.bytecode_or_artifact).unwrap()).unwrap();
             match artifact.bytecode {
                 BytecodeEnum::Hardhat(bytecode) => bytecode,
                 BytecodeEnum::Forge(ForgeBytecode { object }) => object,
             }
-        }
-        (None, Some(bytecode)) => bytecode,
-        _ => panic!("Must provide either an artifact or bytecode"),
+        },
     };
     bytecode.push_str(&tail);
     Ok(Bytes::from_str(&bytecode)?)

@@ -22,8 +22,8 @@ git clone git@github.com:marktoda/universal-deployer.git
 
 ### Install with Cargo
 ```bash
-cargo install --path .
-universal-deployer <options>
+> cargo install --path .
+> universal-deployer --help
 ```
  
 ## Usage
@@ -33,26 +33,30 @@ universal-deployer 0.1.0
 Tool to generate single-use keyless contract deployment transactions
 
 USAGE:
-    universal-deployer [OPTIONS]
+    universal-deployer [FLAGS] [OPTIONS] <bytecode-or-artifact>
 
 FLAGS:
     -h, --help       Prints help information
+    -j, --json       Print output in json format
     -V, --version    Prints version information
 
 OPTIONS:
-    -a, --artifact <artifact>                    Path to a compiled contract artifact
-    -b, --bytecode <bytecode>                    The bytecode of the contract to deploy
     -c, --constructor-args <constructor-args>    ABI encoded constructor args to pass to the deployment
         --gas-limit <gas-limit>
             The gas limit to use for the transaction. Recommended to use a generally overestimated limit to allow
-            confirmation on many chains [default: 1000000]
+            confirmation on many chains
         --gas-price <gas-price>
             The gas price to use for the transaction. Recommended to use a generally high price to allow confirmation on
             many chains [default: 100000000000]
     -n, --num-zero-bytes <num-zero-bytes>        The number of zero bytes to exist in the deployed contract address
     -p, --prefix <prefix>                        A prefix for the deployed contract address
+    -r, --rpc-url <rpc-url>                      Optional RPC url to estimate deployment gas limit
     -s, --s-start <s-start>
             The S value to start with, useful when running multiple instances to grind
+
+
+ARGS:
+    <bytecode-or-artifact>    Path to a contract artifact file or hex contract bytecode
 ```
 
 ### Example
@@ -61,7 +65,7 @@ You have a smart contract that you want to create a deployment transaction for -
 2. Run universal deployer with your desired arguments, for example:
 ```bash
 > universal-deployer \
-    --artifact /path/to/artifact.json \ # provides the bytecode of the contract to deployer
+    /path/to/artifact.json \ # provides the bytecode of the contract to deployer
     --prefix 0x00000000 \ # the tool will attempt to make the contract address begin with 4 0-bytes
     --constructor-args <abi-encoded args> # generated through a tool like `cast abi-encode`
 ```
