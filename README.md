@@ -67,7 +67,8 @@ You have a smart contract that you want to create a deployment transaction for -
 > universal-deployer \
     /path/to/artifact.json \ # provides the bytecode of the contract to deployer
     --prefix 0x00000000 \ # the tool will attempt to make the contract address begin with 4 0-bytes
-    --constructor-args <abi-encoded args> # generated through a tool like `cast abi-encode`
+    --constructor-args <abi-encoded args> \ # generated through a tool like `cast abi-encode`
+    --rpc-url https://mainnet.infura.io/v3/<infura-api-key>  # optional to estimate gas limit more accurately 
 ```
 3. The tool will run (for awhile, depending on how many constraints you gave it). It outputs the current best match found as it goes
 ```bash
@@ -93,3 +94,4 @@ Raw Tx: 0x....
 - Etherscan "Broadcast Raw Transaction" tool
 - `cast publish`
 - send an `eth_sendRawTransaction` RPC call to a full-node or RPC service
+8. Save the transaction! It can be used in the future to deploy to other chains.
