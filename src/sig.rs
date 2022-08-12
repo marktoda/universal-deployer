@@ -11,7 +11,9 @@ use serde::Serialize;
 use std::fmt::Display;
 
 const SIG_V: u64 = 27;
-const SIG_R: &str = "0x79ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+// 0x1fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+// note decoding from string must be done runtime so slows down generation loop
+const SIG_R: U256 = U256([u64::MAX, u64::MAX, u64::MAX, u64::MAX / 8]);
 
 #[derive(Clone, Debug, Serialize)]
 pub struct SignatureResult {
@@ -82,7 +84,7 @@ pub fn find_signature(
 fn generate_signature(tx: &TransactionRequest, s: U256) -> Result<SignatureResult> {
     let sig = Signature {
         v: SIG_V,
-        r: U256::from_str_radix(SIG_R, 16)?,
+        r: SIG_R,
         s,
     };
     let deployer = tx.recover(sig)?;
@@ -92,4 +94,31 @@ fn generate_signature(tx: &TransactionRequest, s: U256) -> Result<SignatureResul
         deployer,
         contract: get_contract_address(deployer, 0),
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ethers::types::{Bytes, transaction::request::TransactionRequest};
+    use std::str::FromStr;
+    use test::Bencher;
+
+    fn create_tx(bytecode: Bytes) -> TransactionRequest {
+        TransactionRequest {
+            from: None,
+            to: None,
+            gas: Some(U256::from_dec_str("1000000").unwrap()),
+            gas_price: Some(U256::from("10000")),
+            nonce: Some(U256::from(0)),
+            value: Some(U256::from(0)),
+            data: Some(bytecode),
+            chain_id: None,
+        }
+    }
+
+    #[bench]
+    fn bench_generate_signature(b: &mut Bencher) {
+        let tx = create_tx(Bytes::from_str("1234567890").unwrap());
+        b.iter(|| generate_signature(&tx, U256::from(1)));
+    }
 }

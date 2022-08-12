@@ -1,3 +1,6 @@
+#![feature(test)]
+extern crate test;
+
 use anyhow::Result;
 use crossbeam_channel::{bounded, Receiver};
 use ethers::types::{transaction::request::TransactionRequest, Bytes, U256};
