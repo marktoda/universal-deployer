@@ -9,6 +9,7 @@ use tx::create_transaction;
 mod sig;
 use sig::{find_signature, SignatureResult};
 mod util;
+mod address;
 
 fn main() {
     match find() {

@@ -1,5 +1,3 @@
-use crate::opt::AddressGenerationConfig;
-use crate::tx::Recoverable;
 use anyhow::Result;
 use crossbeam_channel::Receiver;
 use ethers::{
@@ -7,6 +5,9 @@ use ethers::{
     utils::get_contract_address,
 };
 use std::fmt::Display;
+use crate::opt::AddressGenerationConfig;
+use crate::tx::Recoverable;
+use crate::address::{AddressMatch, check_address};
 
 const SIG_V: u64 = 27;
 const SIG_R: &str = "0x79ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
@@ -39,7 +40,7 @@ pub fn find_signature(
     let mut s: U256 = config.s_start;
 
     let mut best_s: U256 = s;
-    let mut best_zero_byte_count: usize = 0;
+    let mut best_match_count: usize = 0;
 
     println!(
         "Starting search for deployment signature with config: {}",
@@ -47,18 +48,21 @@ pub fn find_signature(
     );
     loop {
         let result = generate_signature(tx, s)?;
-        let zero_count = count_zero_bytes(result.contract);
+        let address_match = check_address(result.contract, config);
 
-        if has_prefix(result.contract, &config.prefix) {
-            if zero_count >= config.num_zero_bytes {
+        match address_match {
+            AddressMatch::Match => {
                 return Ok(result);
-            } else if zero_count > best_zero_byte_count {
-                println!(
-                    "Found new best signature with contract: {}, zero byte count: {}",
-                    result.contract, zero_count
-                );
-                best_s = s;
-                best_zero_byte_count = zero_count;
+            }
+            AddressMatch::NoMatch(count) => {
+                if count > best_match_count {
+                    println!(
+                        "Found new best signature with contract: {}, match_count: {}",
+                        result.contract, count
+                        );
+                    best_s = s;
+                    best_match_count = count;
+                }
             }
         }
 
@@ -67,8 +71,8 @@ pub fn find_signature(
             return generate_signature(tx, best_s);
         }
 
-        if s.saturating_sub(config.s_start).as_u64() % 10000 == 0 && s != config.s_start {
-            println!("Still chugging! Current s: {}", s);
+        if s.saturating_sub(config.s_start).as_u64() % 100000 == 0 && s != config.s_start {
+            println!("Still running! Current s: {}", s);
         }
 
         s = s.overflowing_add(U256::from(1)).0;
@@ -89,14 +93,4 @@ fn generate_signature(tx: &TypedTransaction, s: U256) -> Result<SignatureResult>
         deployer,
         contract: get_contract_address(deployer, 0),
     })
-}
-
-fn has_prefix(address: Address, prefix: &Option<String>) -> bool {
-    prefix
-        .clone()
-        .map_or(true, |p| format!("0x{:x}", address).starts_with(&p))
-}
-
-fn count_zero_bytes(address: Address) -> usize {
-    address.as_bytes().iter().filter(|&x| *x == 0).count()
 }

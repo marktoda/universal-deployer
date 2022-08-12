@@ -1,4 +1,4 @@
-use crate::util::{add_hex_prefix, strip_hex_prefix};
+use crate::util::strip_hex_prefix;
 use anyhow::Result;
 use ethers::types::{Bytes, U256};
 use serde::Deserialize;
@@ -131,7 +131,7 @@ impl Opts {
                 gas_limit: this.gas_limit,
             },
             gen_config: AddressGenerationConfig {
-                prefix: this.prefix.map(|s| add_hex_prefix(&s)),
+                prefix: this.prefix.map(|s| strip_hex_prefix(&s)),
                 num_zero_bytes: this.num_zero_bytes.unwrap_or_default(),
                 s_start: U256::from_str_radix(
                     &this.s_start.unwrap_or_else(|| "3".to_string()),
