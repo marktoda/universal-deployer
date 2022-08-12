@@ -52,12 +52,17 @@ fn count_prefix_match(address: Address, prefix: &str) -> usize {
     let mut prefix_chars = prefix.chars();
     for letter in format!("{:x}", address).chars() {
         let next = prefix_chars.next();
-        if next.is_none() {
-            return count;
-        } else if next.unwrap() != letter {
-            return count;
-        } else {
-            count += 1;
+        match next {
+            Some(next_letter) => {
+                if next_letter == letter {
+                    count += 1;
+                } else {
+                    return count;
+                }
+            }
+            None => {
+                return count;
+            }
         }
     }
     return count;

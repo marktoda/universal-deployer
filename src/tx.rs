@@ -13,11 +13,21 @@ pub async fn create_transaction(config: &TransactionConfig) -> Result<Transactio
 
 async fn get_gas(config: &TransactionConfig) -> Result<U256> {
     if config.gas_limit.is_some() {
-        return Ok(U256::from_dec_str(&config.gas_limit.as_ref().unwrap())?);
+        return Ok(U256::from_dec_str(
+            &config
+                .gas_limit
+                .as_ref()
+                .ok_or(anyhow::anyhow!("Invalid gas limit"))?,
+        )?);
     }
 
     let gas = if config.rpc_url.is_some() {
-        let provider = Provider::<Http>::try_from(config.rpc_url.as_ref().unwrap())?;
+        let provider = Provider::<Http>::try_from(
+            config
+                .rpc_url
+                .as_ref()
+                .ok_or(anyhow::anyhow!("Invalid rpc url"))?,
+        )?;
         let tx = build_transaction_request(config, None)?;
         let estimate = provider.estimate_gas(&TypedTransaction::Legacy(tx)).await?;
         // 20% buffer for chain-specific gas costs or other weirdness
@@ -61,6 +71,8 @@ impl Recoverable for TransactionRequest {
     }
 
     fn get_cost(&self) -> U256 {
-        self.gas_price.unwrap().saturating_mul(self.gas.unwrap())
+        self.gas_price
+            .unwrap_or_default()
+            .saturating_mul(self.gas.unwrap_or_default())
     }
 }

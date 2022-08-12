@@ -49,9 +49,8 @@ pub fn find_signature(
     );
     loop {
         let result = generate_signature(tx, s)?;
-        let address_match = check_address(result.contract, config);
 
-        match address_match {
+        match check_address(result.contract, config) {
             AddressMatch::Match => {
                 return Ok(result);
             }

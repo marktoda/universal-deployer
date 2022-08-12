@@ -13,10 +13,11 @@ mod address;
 mod util;
 
 #[tokio::main]
-async fn main() {
-    let config = Opts::parse().unwrap();
+async fn main() -> Result<()> {
+    let config = Opts::parse()?;
     let result = find(&config).await;
-    output(&config, result).unwrap();
+    output(&config, result)?;
+    Ok(())
 }
 
 #[derive(Debug, Serialize)]
@@ -44,7 +45,7 @@ async fn find(opts: &Config) -> Result<FindResult> {
     let tx = create_transaction(&opts.tx_config).await?;
 
     let receiver = signal_channel()?;
-    let info = find_signature(&tx, &opts.gen_config, receiver)?;
+    let info = find_signature(&tx, &opts.address_config, receiver)?;
     Ok(FindResult {
         info: info.clone(),
         tx: tx.clone(),

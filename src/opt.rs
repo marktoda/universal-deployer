@@ -12,9 +12,7 @@ use structopt::StructOpt;
     about = "Tool to generate single-use keyless contract deployment transactions"
 )]
 pub struct Opts {
-    #[structopt(
-        help = "Path to a contract artifact file or hex contract bytecode"
-    )]
+    #[structopt(help = "Path to a contract artifact file or hex contract bytecode")]
     bytecode_or_artifact: String,
     #[structopt(
         short = "c",
@@ -100,7 +98,7 @@ pub struct TransactionConfig {
 #[derive(Debug)]
 pub struct Config {
     pub tx_config: TransactionConfig,
-    pub gen_config: AddressGenerationConfig,
+    pub address_config: AddressGenerationConfig,
     pub json: bool,
 }
 
@@ -133,7 +131,7 @@ impl Opts {
                 gas_limit: this.gas_limit,
                 rpc_url: this.rpc_url,
             },
-            gen_config: AddressGenerationConfig {
+            address_config: AddressGenerationConfig {
                 prefix: this.prefix.map(|s| strip_hex_prefix(&s)),
                 num_zero_bytes: this.num_zero_bytes.unwrap_or_default(),
                 s_start: U256::from_str_radix(
@@ -153,17 +151,15 @@ fn parse_bytecode(opts: &Opts) -> Result<Bytes> {
 
     let valid_hex = hex::decode(strip_hex_prefix(&opts.bytecode_or_artifact));
     let mut bytecode: String = match valid_hex {
-        Ok(_) => {
-            opts.bytecode_or_artifact.to_string()
-        }
+        Ok(_) => opts.bytecode_or_artifact.to_string(),
         Err(_) => {
             let artifact: Artifact =
-                serde_json::from_str(&fs::read_to_string(&opts.bytecode_or_artifact).unwrap()).unwrap();
+                serde_json::from_str(&fs::read_to_string(&opts.bytecode_or_artifact)?)?;
             match artifact.bytecode {
                 BytecodeEnum::Hardhat(bytecode) => bytecode,
                 BytecodeEnum::Forge(ForgeBytecode { object }) => object,
             }
-        },
+        }
     };
     bytecode.push_str(&tail);
     Ok(Bytes::from_str(&bytecode)?)
