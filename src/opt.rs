@@ -60,6 +60,12 @@ pub struct Opts {
         default_value = "1000000"
     )]
     gas_limit: String,
+    #[structopt(
+        short = "j",
+        long = "json",
+        help = "Print output in json format",
+    )]
+    json: bool,
 }
 
 #[derive(Debug)]
@@ -101,6 +107,7 @@ pub struct TransactionConfig {
 pub struct Config {
     pub tx_config: TransactionConfig,
     pub gen_config: AddressGenerationConfig,
+    pub json: bool,
 }
 
 #[derive(Deserialize)]
@@ -125,6 +132,7 @@ impl Opts {
         let this = Opts::from_args();
 
         Ok(Config {
+            json: this.json,
             tx_config: TransactionConfig {
                 bytecode: parse_bytecode(&this)?,
                 gas_price: this.gas_price,
@@ -134,7 +142,7 @@ impl Opts {
                 prefix: this.prefix.map(|s| strip_hex_prefix(&s)),
                 num_zero_bytes: this.num_zero_bytes.unwrap_or_default(),
                 s_start: U256::from_str_radix(
-                    &this.s_start.unwrap_or_else(|| "3".to_string()),
+                    &this.s_start.unwrap_or_else(|| "1".to_string()),
                     16,
                 )?,
             },

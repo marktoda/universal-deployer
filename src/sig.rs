@@ -1,7 +1,8 @@
 use anyhow::Result;
 use crossbeam_channel::Receiver;
+use serde::Serialize;
 use ethers::{
-    types::{transaction::eip2718::TypedTransaction, Address, Signature, U256},
+    types::{transaction::request::TransactionRequest, Address, Signature, U256},
     utils::get_contract_address,
 };
 use std::fmt::Display;
@@ -12,7 +13,7 @@ use crate::address::{AddressMatch, check_address};
 const SIG_V: u64 = 27;
 const SIG_R: &str = "0x79ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct SignatureResult {
     pub sig: Signature,
     pub contract: Address,
@@ -33,7 +34,7 @@ impl Display for SignatureResult {
 // given config.
 // on channel signal, returns the best signature found so far
 pub fn find_signature(
-    tx: &TypedTransaction,
+    tx: &TransactionRequest,
     config: &AddressGenerationConfig,
     signal: Receiver<()>,
 ) -> Result<SignatureResult> {
@@ -67,12 +68,8 @@ pub fn find_signature(
         }
 
         if signal.try_recv().is_ok() {
-            println!("Received sigint, shutting down cleanly...");
+            println!("Received sigint - current s: {} - shutting down cleanly...", s);
             return generate_signature(tx, best_s);
-        }
-
-        if s.saturating_sub(config.s_start).as_u64() % 100000 == 0 && s != config.s_start {
-            println!("Still running! Current s: {}", s);
         }
 
         s = s.overflowing_add(U256::from(1)).0;
@@ -80,7 +77,7 @@ pub fn find_signature(
 }
 
 // generate a valid signature for the given tx using the given s value
-fn generate_signature(tx: &TypedTransaction, s: U256) -> Result<SignatureResult> {
+fn generate_signature(tx: &TransactionRequest, s: U256) -> Result<SignatureResult> {
     let sig = Signature {
         v: SIG_V,
         r: U256::from_str_radix(SIG_R, 16)?,

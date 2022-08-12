@@ -2,8 +2,9 @@ use anyhow::Result;
 use crossbeam_channel::{bounded, Receiver};
 use ethers::types::Bytes;
 use std::fmt::Display;
+use serde::Serialize;
 mod opt;
-use opt::Opts;
+use opt::{Config, Opts};
 mod tx;
 use tx::create_transaction;
 mod sig;
@@ -12,17 +13,12 @@ mod util;
 mod address;
 
 fn main() {
-    match find() {
-        Ok(result) => {
-            println!("{}", result);
-        }
-        Err(err) => {
-            eprintln!("{:?}", err);
-        }
-    }
+    let config = Opts::parse().unwrap();
+    let result = find(&config);
+    output(&config, result).unwrap();
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct FindResult {
     info: SignatureResult,
     tx: Bytes,
@@ -34,9 +30,8 @@ impl Display for FindResult {
     }
 }
 
-fn find() -> Result<FindResult> {
-    let opts = Opts::parse()?;
-
+// create a transaction to deploy the given contract
+fn find(opts: &Config) -> Result<FindResult> {
     let tx = create_transaction(&opts.tx_config)?;
 
     let receiver = signal_channel()?;
@@ -45,6 +40,23 @@ fn find() -> Result<FindResult> {
         info: info.clone(),
         tx: tx.rlp_signed(&info.sig),
     })
+}
+
+// output the find result
+fn output(config: &Config, result: Result<FindResult>) -> Result<()> {
+    match result {
+        Ok(result) => {
+            if config.json {
+                println!("{}", serde_json::to_string(&result)?);
+            } else {
+                println!("{}", result);
+            }
+        }
+        Err(err) => {
+            eprintln!("{:?}", err);
+        }
+    }
+    Ok(())
 }
 
 // channel for sigint to finish work before exiting
